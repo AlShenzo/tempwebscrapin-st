@@ -1,13 +1,18 @@
 import requests
 import selectorlib
 import time
+import sqlite3
 
+connection = sqlite3.connect('data.db')
+cursor = connection.cursor()
 
 url = 'https://programmer100.pythonanywhere.com/'
+
 
 def now():
     content = time.strftime('%y-%m-%d-%H-%M-%S')
     return content
+
 
 
 def scrape(url):
@@ -21,19 +26,19 @@ def extract(source):
     return value
 
 def write(extracted):
-    with open('data.txt', 'a')as file:
-        content = file.write(extracted+'\n')
-    return content
+    cursor = connection.cursor()
+    extracted = extracted.split(',')
+    extract = [item.strip() for item in extracted]
+    date,temperature = extract
+    cursor.execute("INSERT INTO temp Values(?,?)", (date,temperature))
+    connection.commit()
 
 
-if __name__ == "__main__":
-        source = scrape(url)
-        extracted = extract(source)
-        time_now = now()
-        print(extracted)
-        write(time_now + ',' + extracted)
-
-
+source = scrape(url)
+extracted = extract(source)
+time_now = now()
+extractor = time_now + ',' + extracted
+write(extractor)
 
 
 
